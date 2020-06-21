@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TicTacToe</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/7.15.3/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/7.15.3/firebase-auth.js"></script>
+    <script defer src="/__/firebase/7.15.3/firebase-firestore.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+    <link rel="stylesheet" href="./css/style.css">
+
+  </head>
+
+  <header>
+		<h1>TicTacToe</h1>
+		<h2>Create a game and share the link !</h2>
+  </header>
+  <body>
+
+	<button id="createGameBtn">create game</button><br>
+
+	<input type="text" id='joinGameID'>
+	<button id='joinGameBtn'>Join Game</button>
+
+	<div id='board'></div>
+	<div id='online'>
+		<div id="title" align=center>Players</div>
+		<hr>
+	</div>
+
+	<div id='ids'>
+		<div id='userID'></div>
+		<div id='gameID'></div>
+	</div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        // // The Firebase SDK is initialized and available here!
+        //
+        // firebase.auth().onAuthStateChanged(user => { });
+        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+        // firebase.messaging().requestPermission().then(() => { });
+        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+        //
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+        try {
+			let app = firebase.app();
+			console.log(app);
+			let features = ['auth', 'database', 'messaging', 'storage'].filter(feature => typeof app[feature] === 'function');
+			console.log(`Firebase SDK loaded with ${features.join(', ')}`);
+        } catch (e) {
+			console.error(e);
+			console.log('Error loading the Firebase SDK, check the console.');
+        }
+      });
+    </script>
+
+    <script src='./js/index.js'></script>
+  </body>
+</html>
