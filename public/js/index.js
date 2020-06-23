@@ -52,11 +52,13 @@ class Game {
 	}
 
 	makeBoard() {
-		for (let i = 1; i <= 9; i++) {
-			let cell = document.createElement("div");
-			cell.setAttribute("id", `cell-${i}`);
-			cell.addEventListener("click", () => this.makeMove(i - 1));
-			this.boardRef.appendChild(cell);
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; i < 3; j++) {
+				let cell = document.createElement("div");
+				cell.setAttribute("id", `cell-${i}-${j}`);
+				cell.addEventListener('click', () => this.makeMove(i,j));
+				this.boardRef.appendChild(cell);
+			}
 		}
 	}
 
@@ -106,12 +108,13 @@ class Game {
 		this.startListening();
 	}
 
-	async makeMove(cell) {
+	async makeMove(cell, x, y) {
 		let cmd = this.commandsRef.add({
 			type: "move",
 			gameID: this.gameID,
 			playerID: this.playerID,
-			cellNo: cell,
+            x, 
+            y
 		});
 	}
 }

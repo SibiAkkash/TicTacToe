@@ -18,37 +18,42 @@ app.use(express.json());
 
 app.use('/', indexRouter);
 
-function checkWin(board, char) {
+function boardAfterMove(board, char) {
     let win = false;
     let emptyCells = 0;
-    for(let i = 0; i < 9; i += 3) {
-        if(board.splice(i, i+3).every(move => move == char)) {
-            win = true;
-            break;
-        }
-    }
+    
 }
 
-function updateBoard(gameID, board, playerChar, cell) {
-    if(cell < 0 && cell >= 9 && board[cell] != '') {
-        console.log('cell already taken !');
-    } else {
-        newBoard[cell] = playerChar;
-        await gameRef.doc(gameID).update({
-            board: newBoard
-        });
-        checkWin(board, playChar); 
+function updateBoard(gameID, board, playerChar, x, y) {
+
+    if(x < 0 || x > 2 || y < 0 || y > 2) {
+        console.log('cell out of bounds');
+        // throw error
+    }  
+    if(board[x][y]) {
+        console.log('cell already taken');
+        // throw error
     }
+    
+    newBoard[cell] = playerChar;
+    await gameRef.doc(gameID).update({
+        board: newBoard
+    });
+
+    let outcome = boardAfterMove(board, playChar); 
+    //* outcome -> win, next-player-turn, tie
+    //* push respective msgs to player collection
+
 }
 
-function handleMove(gameID, playerID, cell) {
+function handleMove(gameID, playerID, x, y) {
     let game = await gameRef.doc(gameID).get();
     let player = await gameRef.doc(playerID).get();
 
     if(game.exists) {
         if(game.data().turn == playerID) {
             let board = game.data().board;
-            updateBoard(gameID, board, player.char, cell);
+            updateBoard(gameID, board, player.char, x, y);
         } else {
             console.log('its not your turn !');
         }
@@ -61,9 +66,8 @@ exports.onNewCommand = functions.firestore
     .document('commands/{cmd_id}')
     .onCreate((snap, context) => {
         const cmd = snap.data();
-        const type = cmd.type;
-        switch(type) {
-            case 'move': handleMove(cmd.game_id, cmd.player_id, cell)
+        switch(cmd.type) {
+            case 'move': handleMove(cmd.game_id, cmd.player_id, cmd.x, cmd.y);
         }
     });
 
