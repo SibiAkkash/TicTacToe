@@ -50,7 +50,7 @@ router.get("/create-game/:pid", isValidPlayer, async (req, res) => {
 		p2_id: null,
 		board,
 		turn: pid,
-		playing: false,
+		gameover: false,
 		outcome: null, //tie, gameover, forfeit
 	});
 	await playerRef.doc(pid).set(

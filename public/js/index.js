@@ -4,7 +4,6 @@ class Game {
 	constructor() {
 		this.board = Array(9).fill("");
 		this.canStartListening = false;
-		this.isMyTurn = false;
 
 		this.db = firebase.firestore();
 		this.commandsRef = this.db.collection("commands");
@@ -16,15 +15,15 @@ class Game {
 		this.createGameBtn = document.getElementById("createGameBtn");
 		this.joinGameBtn = document.getElementById("joinGameBtn");
 
-		this.baseURL =
-			"https://us-central1-tictactoe-func.cloudfunctions.net/api";
-		// this.baseURL = 'http://localhost:5001/tictactoe-func/us-central1/api';
+		// this.baseURL =
+		// 	"https://us-central1-tictactoe-func.cloudfunctions.net/api";
+		this.baseURL = 'http://localhost:5001/tictactoe-func/us-central1/api';
 	}
 
 	init() {
 		this.makeBoard();
-		this.getPlayerID();
-		this.addListeners();
+		// this.getPlayerID();
+		// this.addListeners();
 	}
 
 	addListeners() {
@@ -32,7 +31,7 @@ class Game {
 		this.joinGameBtn.addEventListener("click", () => this.joinGame());
 	}
 
-	startListening() {
+	attachGameListener() {
 		let stopListening = () => {
 			this.gameRef.doc(this.gameID).onSnapshot((snap) => {
 				let updatedBoard = snap.data().board;
@@ -40,14 +39,15 @@ class Game {
 				this.setBoard(updatedBoard);
 			});
 		};
+		stopListening();
+	}
 
+	attachPlayerListener() {
 		let unsubPlayer = () => {
 			this.playerRef.doc(this.playerID).onSnapshot((snap) => {
 				this.setMsg(snap.data().msg);
 			});
 		};
-
-		stopListening();
 		unsubPlayer();
 	}
 
@@ -77,6 +77,7 @@ class Game {
 			response = await response.json();
 			this.playerID = response.playerID;
 		}
+		this.attachPlayerListener();
 	}
 
 	async createGame() {
@@ -88,8 +89,7 @@ class Game {
 			this.gameID = response.gameID;
 		}
 		console.log(this.playerID, this.gameID);
-		this.canStartListening = true;
-		this.startListening();
+		this.attachGameListener();
 	}
 
 	async joinGame() {
@@ -104,12 +104,11 @@ class Game {
 			this.gameID = response.gameID;
 			console.log(this.playerID, this.gameID);
 		}
-		this.canStartListening = true;
-		this.startListening();
+		this.attachGameListener();
 	}
 
-	async makeMove(cell, x, y) {
-		let cmd = this.commandsRef.add({
+	async makeMove(x, y) {
+		let cmd_id = this.commandsRef.add({
 			type: "move",
 			gameID: this.gameID,
 			playerID: this.playerID,
