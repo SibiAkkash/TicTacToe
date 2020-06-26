@@ -15,95 +15,8 @@ const gameRef = db.collection('games');
 app.use(cors());
 app.use(express.json());
 
-// app.use('/', indexRouter);
-async function isValidPlayer(req, res, next) {
-	const player = await playerRef.doc(req.params.pid).get();
-	if (player.exists) {
-        res.status(403); //already exists errorcode
-		return next(new Error('player already exists'));
-	} else {
-		next(new Error("Player does not exist. Check the player ID"));
-	}
-}
+app.use('/', indexRouter);
 
-async function isValidGame(req, res, next) {
-	const game = await gameRef.doc(req.params.gid).get();
-	if (game.exists && game.data().p2_id == null) {
-		return next();
-	} else {
-        res.status(404);    // does not exist errorcode
-		next(new Error("Game does not exist. Check the game ID !"));
-	}
-}
-
-app.get("/create-player/:name", async (req, res) => {
-	let name = req.params.name;
-	let player = await playerRef.add({
-		name,
-        msg: null,
-        gameID: null,
-        char: null
-	});
-	console.log(name, player.id);
-	res.json({
-		playerID: player.id,
-	});
-});
-
-app.get("/create-game/:pid", isValidPlayer, async (req, res) => {
-    let pid = req.params.pid;
-    let board = [];
-    for(let i = 0; i < 3; i++) {
-        board.push(Array(3).fill(''));
-    }
-	let game = await gameRef.add({
-		p1_id: pid,
-		p2_id: null,
-		board,
-		turn: pid,
-		gameover: false,
-		outcome: null, //tie, gameover, forfeit
-	});
-	await playerRef.doc(pid).set(
-		{
-			gameID: game.id,
-            char: "X",
-            msg: "Your turn"
-		},
-		{ merge: true }
-	);
-
-	res.json({ gameID: game.id });
-});
-
-app.get(
-	"/join-game/:gid/player/:pid",
-	isValidPlayer,
-	isValidGame,
-	async (req, res) => {
-		let pid = req.params.pid;
-		let gid = req.params.gid;
-
-		await gameRef.doc(gid).update({
-			p2_id: pid,
-		});
-
-		await playerRef.doc(pid).set(
-			{
-				gameID: gid,
-                char: "O",
-                msg: "Opponent turn"
-			},
-			{ merge: true }
-		);
-
-		res.json({ gameID: gid });
-	}
-);
-
-app.use(function(err, req, res, next) {
-    res.json({'error': err});
-});
 
 function boardAfterMove(board, char) {
     let win = false;
@@ -130,6 +43,7 @@ function boardAfterMove(board, char) {
         for(let j = 0; j < 3; j++) {
             emptyCells += board[i][j] ? 0 : 1;
             if(i == j) {
+
             }
         }
     }
@@ -150,6 +64,7 @@ async function updateBoard(game, player, x, y) {
     let board = game.data().board;
     let p1 = game.data().p1_id;
     let p2 = game.data().p2_id;
+    console.log(player.data());
     let char = player.data().char;
     
     if(x < 0 || x > 2 || y < 0 || y > 2) {
@@ -167,9 +82,7 @@ async function updateBoard(game, player, x, y) {
     
     board[cell] = char;
     
-    await gameRef.doc(game.id).update({
-        board
-    });
+    await gameRef.doc(game.id).update({ board });
 
     let outcome = boardAfterMove(board, char); 
     //* outcome -> win, next-player-turn, tie
@@ -177,12 +90,10 @@ async function updateBoard(game, player, x, y) {
     switch(outcome) {
         case 'win':
             await gameRef.doc(game.id).update({ gameover: true }); 
-
             //set player msg
             let opponent = player.id == p1 ? p2 : p1;
             await playerRef.doc(player.id).update({ msg: 'You win' });
             await playerRef.doc(opponent).update({ msg: 'Your lose' });
-
             // set winner id in game doc
             break;
 
@@ -192,12 +103,12 @@ async function updateBoard(game, player, x, y) {
             await playerRef.doc(p1).update({ msg: 'Draw' });
             await playerRef.doc(p2).update({ msg: 'Draw' });
             break;
+
         case 'nextMove':
             // toggle turn   
             let turn = p1 == game.data().turn ? p2 : p1;
             await gameRef.doc(game.id).update({ turn });  
-
-            await playerRef.doc(player.id).update({ msg: 'Opponent turn' });
+            await playerRef.doc(player.id).update({msg: 'Opponent turn'});
             await playerRef.doc(turn).update({ msg: 'Your turn' });
             break;
     }
@@ -205,7 +116,7 @@ async function updateBoard(game, player, x, y) {
 
 async function handleMove(gameID, playerID, x, y) {
     let game = await gameRef.doc(gameID).get();
-    let player = await gameRef.doc(playerID).get();
+    let player = await playerRef.doc(playerID).get();
 
     if(game.exists) {
         if(game.data().turn == playerID) {

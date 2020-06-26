@@ -1,10 +1,6 @@
-// const { runInThisContext } = require("vm");
 
 class Game {
 	constructor() {
-		this.board = Array(9).fill("");
-		this.canStartListening = false;
-
 		this.db = firebase.firestore();
 		this.commandsRef = this.db.collection("commands");
 		this.playerRef = this.db.collection("players");
@@ -15,15 +11,15 @@ class Game {
 		this.createGameBtn = document.getElementById("createGameBtn");
 		this.joinGameBtn = document.getElementById("joinGameBtn");
 
-		// this.baseURL =
-		// 	"https://us-central1-tictactoe-func.cloudfunctions.net/api";
+		this.baseURL =
+			// "https://us-central1-tictactoe-func.cloudfunctions.net/api";
 		this.baseURL = 'http://localhost:5001/tictactoe-func/us-central1/api';
 	}
 
 	init() {
 		this.makeBoard();
-		// this.getPlayerID();
-		// this.addListeners();
+		this.getPlayerID();
+		this.addListeners();
 	}
 
 	addListeners() {
@@ -45,15 +41,21 @@ class Game {
 	attachPlayerListener() {
 		let unsubPlayer = () => {
 			this.playerRef.doc(this.playerID).onSnapshot((snap) => {
+				console.log(snap.data());
+				
 				this.setMsg(snap.data().msg);
 			});
 		};
 		unsubPlayer();
 	}
 
+	setMsg() {
+		;
+	}
+
 	makeBoard() {
 		for (let i = 0; i < 3; i++) {
-			for (let j = 0; i < 3; j++) {
+			for (let j = 0; j < 3; j++) {
 				let cell = document.createElement("div");
 				cell.setAttribute("id", `cell-${i}-${j}`);
 				cell.addEventListener('click', () => this.makeMove(i,j));
@@ -118,7 +120,8 @@ class Game {
 	}
 }
 
-window.onload = () => {
+
+document.addEventListener("DOMContentLoaded", function () {
 	let game = new Game();
 	game.init();
-};
+});

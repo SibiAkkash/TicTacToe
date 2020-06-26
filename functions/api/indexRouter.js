@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const admin = require("firebase-admin");
-admin.initializeApp();
 
 const db = admin.firestore();
 const playerRef = db.collection("players");
@@ -10,9 +9,10 @@ const gameRef = db.collection("games");
 async function isValidPlayer(req, res, next) {
 	const player = await playerRef.doc(req.params.pid).get();
 	if (player.exists) {
-		return next();
+        return next();
 	} else {
-		next(new Error("Player does not exist. Check the player ID"));
+        res.status(404); 
+		return next(new Error('player does not exist'));
 	}
 }
 
@@ -21,6 +21,7 @@ async function isValidGame(req, res, next) {
 	if (game.exists && game.data().p2_id == null) {
 		return next();
 	} else {
+        res.status(404); 
 		next(new Error("Game does not exist. Check the game ID !"));
 	}
 }
@@ -40,11 +41,17 @@ router.get("/create-player/:name", async (req, res) => {
 });
 
 router.get("/create-game/:pid", isValidPlayer, async (req, res) => {
-    let pid = req.params.pid;
-    let board = [];
+	let pid = req.params.pid;
+	// iniitalise the board
+	let board = [];
     for(let i = 0; i < 3; i++) {
-        board.push(Array(3).fill(''));
-    }
+        let row = {};
+        for(let j = 0; j < 3; j++) {
+            row[j] = '';
+        }
+        board.push(row);
+	}
+	// write a game object
 	let game = await gameRef.add({
 		p1_id: pid,
 		p2_id: null,
@@ -53,6 +60,7 @@ router.get("/create-game/:pid", isValidPlayer, async (req, res) => {
 		gameover: false,
 		outcome: null, //tie, gameover, forfeit
 	});
+	// set turn msgs and player characters
 	await playerRef.doc(pid).set(
 		{
 			gameID: game.id,
@@ -73,9 +81,7 @@ router.get(
 		let pid = req.params.pid;
 		let gid = req.params.gid;
 
-		await gameRef.doc(gid).update({
-			p2_id: pid,
-		});
+		await gameRef.doc(gid).update({ p2_id: pid });
 
 		await playerRef.doc(pid).set(
 			{
@@ -89,3 +95,10 @@ router.get(
 		res.json({ gameID: gid });
 	}
 );
+
+router.use(function(err, req, res, next) {
+    res.json({ 'error': err.msg });
+});
+
+
+module.exports = router;
