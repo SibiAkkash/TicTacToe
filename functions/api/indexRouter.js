@@ -42,20 +42,11 @@ router.get("/create-player/:name", async (req, res) => {
 
 router.get("/create-game/:pid", isValidPlayer, async (req, res) => {
 	let pid = req.params.pid;
-	// iniitalise the board
-	let board = [];
-    for(let i = 0; i < 3; i++) {
-        let row = {};
-        for(let j = 0; j < 3; j++) {
-            row[j] = '';
-        }
-        board.push(row);
-	}
 	// write a game object
 	let game = await gameRef.add({
 		p1_id: pid,
 		p2_id: null,
-		board,
+		board: Array(9).fill(''),
 		turn: pid,
 		gameover: false,
 		outcome: null, //tie, gameover, forfeit

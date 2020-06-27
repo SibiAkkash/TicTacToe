@@ -1,19 +1,19 @@
-
 class Game {
 	constructor() {
 		this.db = firebase.firestore();
 		this.commandsRef = this.db.collection("commands");
 		this.playerRef = this.db.collection("players");
-		this.gameRef = this.db.collection("players");
+		this.gameRef = this.db.collection("games");
 
 		this.boardRef = document.getElementById("board");
+		this.msgRef = document.getElementById("msg");
 		this.joinGameInput = document.getElementById("joinGameID");
 		this.createGameBtn = document.getElementById("createGameBtn");
 		this.joinGameBtn = document.getElementById("joinGameBtn");
 
-		this.baseURL =
-			// "https://us-central1-tictactoe-func.cloudfunctions.net/api";
-		this.baseURL = 'http://localhost:5001/tictactoe-func/us-central1/api';
+		this.api_prod =
+			"https://us-central1-tictactoe-func.cloudfunctions.net/api";
+		this.api_local = "http://localhost:5001/tictactoe-func/us-central1/api";
 	}
 
 	init() {
@@ -28,39 +28,36 @@ class Game {
 	}
 
 	attachGameListener() {
-		let stopListening = () => {
-			this.gameRef.doc(this.gameID).onSnapshot((snap) => {
+		this.detachGameListener = this.gameRef
+			.doc(this.gameID)
+			.onSnapshot((snap) => {
+				console.log(snap);
 				let updatedBoard = snap.data().board;
 				console.log(snap.data().board);
 				this.setBoard(updatedBoard);
 			});
-		};
-		stopListening();
 	}
 
 	attachPlayerListener() {
-		let unsubPlayer = () => {
-			this.playerRef.doc(this.playerID).onSnapshot((snap) => {
+		this.detachPlayerListener = this.playerRef
+			.doc(this.playerID)
+			.onSnapshot((snap) => {
+				console.log(snap);
 				console.log(snap.data());
-				
 				this.setMsg(snap.data().msg);
 			});
-		};
-		unsubPlayer();
 	}
 
-	setMsg() {
-		;
+	setMsg(msg) {
+		this.msgRef.textContent = msg;
 	}
 
 	makeBoard() {
-		for (let i = 0; i < 3; i++) {
-			for (let j = 0; j < 3; j++) {
-				let cell = document.createElement("div");
-				cell.setAttribute("id", `cell-${i}-${j}`);
-				cell.addEventListener('click', () => this.makeMove(i,j));
-				this.boardRef.appendChild(cell);
-			}
+		for (let i = 0; i < 9; i++) {
+			let cell = document.createElement("div");
+			cell.setAttribute("id", `cell-${i}`);
+			cell.addEventListener("click", () => this.makeMove(i));
+			this.boardRef.appendChild(cell);
 		}
 	}
 
@@ -70,11 +67,20 @@ class Game {
 		}
 	}
 
+	async makeMove(cellNo) {
+		let cmd_id = this.commandsRef.add({
+			type: "move",
+			gameID: this.gameID,
+			playerID: this.playerID,
+			cellNo
+		});
+	}
+
 	async getPlayerID() {
 		if (!this.playerID) {
 			this.name = prompt("enter username pls");
 			let response = await fetch(
-				`${this.baseURL}/create-player/${this.name}`
+				`${this.api_prod}/create-player/${this.name}`
 			);
 			response = await response.json();
 			this.playerID = response.playerID;
@@ -85,7 +91,7 @@ class Game {
 	async createGame() {
 		if (this.playerID && !this.gameID) {
 			let response = await fetch(
-				`${this.baseURL}/create-game/${this.playerID}`
+				`${this.api_prod}/create-game/${this.playerID}`
 			);
 			response = await response.json();
 			this.gameID = response.gameID;
@@ -100,26 +106,15 @@ class Game {
 			alert("game id cannot be empty");
 		} else {
 			let response = await fetch(
-				`${this.baseURL}/join-game/${gameToJoin}/player/${this.playerID}`
+				`${this.api_prod}/join-game/${gameToJoin}/player/${this.playerID}`
 			);
 			response = await response.json();
 			this.gameID = response.gameID;
 			console.log(this.playerID, this.gameID);
 		}
-		this.attachGameListener();
 	}
 
-	async makeMove(x, y) {
-		let cmd_id = this.commandsRef.add({
-			type: "move",
-			gameID: this.gameID,
-			playerID: this.playerID,
-            x, 
-            y
-		});
-	}
 }
-
 
 document.addEventListener("DOMContentLoaded", function () {
 	let game = new Game();
