@@ -12,9 +12,6 @@ const app = express();
 // Cross origin resource sharing
 app.use(cors());
 
-// middleware that converts raw request body to json
-app.use(bodyParser.json());
-
 // not very sure check pls
 app.use(express.json());
 

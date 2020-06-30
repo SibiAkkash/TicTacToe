@@ -14,8 +14,8 @@ class Game {
 
 		this.api_prod =
 			"https://us-central1-tictactoe-func.cloudfunctions.net/apiv2";
-		this.api_local = "http://localhost:5001/tictactoe-func/us-central1/api";
-		this.env = "prod";
+		this.api_local = "http://localhost:5001/tictactoe-func/us-central1/apiv2";
+		this.env = "local";
 	}
 
 	init() {
