@@ -13,7 +13,7 @@ class Game {
 		this.joinGameBtn = document.getElementById("joinGameBtn");
 
 		this.api_prod =
-			"https://us-central1-tictactoe-func.cloudfunctions.net/apiv2	";
+			"https://us-central1-tictactoe-func.cloudfunctions.net/apiv2";
 		this.api_local = "http://localhost:5001/tictactoe-func/us-central1/api";
 		this.env = "prod";
 	}
@@ -27,6 +27,7 @@ class Game {
 	addListeners() {
 		this.createGameBtn.addEventListener("click", () => this.createGame());
 		this.joinGameBtn.addEventListener("click", () => this.joinGame());
+		document.getElementById('testMoveEndpoint').addEventListener('click', () => this.makeMove(2));
 	}
 
 	attachGameListener() {

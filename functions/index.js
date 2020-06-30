@@ -4,16 +4,21 @@ const cors = require("cors");
 const bodyParser = require('body-parser');
 const admin = require("firebase-admin");
 
+// call this first
 admin.initializeApp();
 
 const app = express();
 
 // Cross origin resource sharing
 app.use(cors());
-// convert raw request body to json
+
+// middleware that converts raw request body to json
 app.use(bodyParser.json());
+
+// not very sure check pls
 app.use(express.json());
 
+// mount all the routes
 app.use('/', require('./controllers'));
 
 exports.apiv2 = functions.https.onRequest(app);
